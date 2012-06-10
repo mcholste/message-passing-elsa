@@ -5,6 +5,7 @@ use Data::Dumper;
 use namespace::autoclean;
 use Config::JSON;
 use JSON;
+use Try::Tiny qw/ try catch /;
 
 our $Log_parse_errors = 0;
 
@@ -21,16 +22,16 @@ sub BUILDARGS {
 		$params{conf} = Config::JSON->new($config_file);
 	}
 
-	eval { 
+	try {
 		if ($params{inc}){
 			$INC{ $params{inc} } = 1;
 		}
 		require Reader;
 		require Writer;
-	};
-	if ($@){
-		die('Unable to find ELSA libraries in given dir ' . $params{inc} . ': ' . $@);
 	}
+    catch {
+		die('Unable to find ELSA libraries in given dir ' . $params{inc} . ': ' . $_);
+	};
 
 	$params{reader} = new Reader(conf => $params{conf});
 	$params{writer} = new Writer(conf => $params{conf});
@@ -44,13 +45,14 @@ sub consume {
     my $self = shift;
     no warnings qw(uninitialized); # these will happen a lot, legitimately
     my $line;
-    eval {
+    try {
     	$line = $self->reader->parse_hash(from_json(shift()));
-    };
-    if ($@){
-    	$self->reader->log->error('Parse error: ' . $@ . ', ' . Dumper($line)) if $Log_parse_errors;
-    	return;
     }
+    catch {
+    	$self->reader->log->error('Parse error: ' . $_ . ', ' . Dumper($line)) if $Log_parse_errors;
+    };
+
+    return unless $line;
 
 	$self->writer->write($line);
 
