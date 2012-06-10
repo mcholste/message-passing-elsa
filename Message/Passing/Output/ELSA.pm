@@ -45,7 +45,7 @@ sub consume {
     no warnings qw(uninitialized); # these will happen a lot, legitimately
     my $line;
     eval {
-    	$line = $self->reader->parse_hash(from_json($self->encode(shift())));
+    	$line = $self->reader->parse_hash(from_json(shift()));
     };
     if ($@){
     	$self->reader->log->error('Parse error: ' . $@ . ', ' . Dumper($line)) if $Log_parse_errors;
@@ -62,3 +62,4 @@ sub consume {
 
 __PACKAGE__->meta->make_immutable;
 1;
+
