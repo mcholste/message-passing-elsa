@@ -15,12 +15,12 @@ has 'writer' => (is => 'rw', isa => 'Writer', required => 1);
 sub BUILDARGS {
 	my $class = shift;
 	my %params = @_;
-	
+
 	if ($params{config_file}){
 		my $config_file = $params{config_file} ? $params{config_file} : '/etc/elsa_node.conf';
 		$params{conf} = Config::JSON->new($config_file);
 	}
-	
+
 	eval { 
 		if ($params{inc}){
 			$INC{ $params{inc} } = 1;
@@ -31,12 +31,12 @@ sub BUILDARGS {
 	if ($@){
 		die('Unable to find ELSA libraries in given dir ' . $params{inc} . ': ' . $@);
 	}
-	
+
 	$params{reader} = new Reader(conf => $params{conf});
 	$params{writer} = new Writer(conf => $params{conf});
-	
+
 	$params{filename} = $params{conf}->get('buffer_dir') . '/' . $params{filename};
-	
+
 	return \%params;
 }
 
@@ -51,9 +51,9 @@ sub consume {
     	$self->reader->log->error('Parse error: ' . $@ . ', ' . Dumper($line)) if $Log_parse_errors;
     	return;
     }
-    
+
 	$self->writer->write($line);
-    
+
     if (scalar keys %{ $self->reader->to_add }){
 		$self->writer->add_programs($self->reader->to_add);
 		$self->reader->to_add({});
