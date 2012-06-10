@@ -6,6 +6,7 @@ use namespace::autoclean;
 use Config::JSON;
 use JSON;
 use Try::Tiny qw/ try catch /;
+use MRO::Compat;
 
 our $Log_parse_errors = 0;
 
@@ -15,7 +16,7 @@ has 'writer' => (is => 'rw', isa => 'Writer', required => 1);
 
 sub BUILDARGS {
 	my $class = shift;
-	my %params = @_;
+	my %params = %{ $class->next::method(@_) };
 
 	if ($params{config_file}){
 		my $config_file = $params{config_file} ? $params{config_file} : '/etc/elsa_node.conf';
