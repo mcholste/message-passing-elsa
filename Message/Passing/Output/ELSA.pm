@@ -37,8 +37,6 @@ sub BUILDARGS {
 	$params{reader} = new Reader(conf => $params{conf});
 	$params{writer} = new Writer(conf => $params{conf});
 
-	$params{filename} = $params{conf}->get('buffer_dir') . '/' . $params{filename};
-
 	return \%params;
 }
 
