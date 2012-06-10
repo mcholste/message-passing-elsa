@@ -7,12 +7,31 @@ use Config::JSON;
 use JSON;
 use Try::Tiny qw/ try catch /;
 use MRO::Compat;
+use Moose::Util::TypeConstraints;
 
 our $Log_parse_errors = 0;
 
 has 'conf' => ( is => 'ro', isa => 'Config::JSON', required => 1);
-has 'reader' => (is => 'rw', isa => 'Reader', required => 1);
-has 'writer' => (is => 'rw', isa => 'Writer', required => 1);
+class_type 'Reader'; # Best to be explicit as they're not loaded yet
+class_type 'Writer';
+has 'reader' => (
+    is => 'ro',
+    isa => 'Reader',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        Reader->new(conf => $self->conf);
+    },
+);
+has 'reader' => (
+    is => 'ro',
+    isa => 'Writer',
+    lazy => 1,
+    default => sub {
+        my $self = shift;
+        Writer->new(conf => $self->conf);
+    },
+);
 
 sub BUILDARGS {
 	my $class = shift;
@@ -34,10 +53,13 @@ sub BUILDARGS {
 		die('Unable to find ELSA libraries in given dir ' . $params{inc} . ': ' . $_);
 	};
 
-	$params{reader} = new Reader(conf => $params{conf});
-	$params{writer} = new Writer(conf => $params{conf});
-
 	return \%params;
+}
+
+sub BUILD {
+    my $self = shift;
+    $self->reader;
+    $self->writer;
 }
 
 sub consume {
