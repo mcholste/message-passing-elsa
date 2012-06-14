@@ -8,6 +8,7 @@ use JSON;
 use Try::Tiny qw/ try catch /;
 use MRO::Compat;
 use Moose::Util::TypeConstraints;
+use Module::Load;
 
 our $Log_parse_errors = 0;
 
@@ -44,7 +45,7 @@ sub BUILDARGS {
 
 	try {
 		if ($params{inc}){
-			$INC{ $params{inc} } = 1;
+			push @INC, $params{inc};
 		}
 		require Reader;
 		require Writer;
