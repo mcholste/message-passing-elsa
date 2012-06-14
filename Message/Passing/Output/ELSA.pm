@@ -10,7 +10,7 @@ use MRO::Compat;
 use Moose::Util::TypeConstraints;
 use Module::Load;
 
-our $Log_parse_errors = 0;
+our $Log_parse_errors = 1;
 
 has 'conf' => ( is => 'ro', isa => 'Config::JSON', required => 1);
 class_type 'Reader'; # Best to be explicit as they're not loaded yet
@@ -24,7 +24,7 @@ has 'reader' => (
         Reader->new(conf => $self->conf);
     },
 );
-has 'reader' => (
+has 'writer' => (
     is => 'ro',
     isa => 'Writer',
     lazy => 1,
@@ -66,16 +66,15 @@ sub BUILD {
 sub consume {
     my $self = shift;
     no warnings qw(uninitialized); # these will happen a lot, legitimately
-    my $line;
+    my $line = shift;;
     try {
-    	$line = $self->reader->parse_hash(from_json(shift()));
+    	$line = $self->reader->parse_hash($line);
     }
     catch {
     	$self->reader->log->error('Parse error: ' . $_ . ', ' . Dumper($line)) if $Log_parse_errors;
     };
 
-    return unless $line;
-
+    return unless $line and ref($line) and ref($line) eq 'ARRAY';
 	$self->writer->write($line);
 
     if (scalar keys %{ $self->reader->to_add }){
