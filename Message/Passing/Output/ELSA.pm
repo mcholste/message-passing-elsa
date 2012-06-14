@@ -8,7 +8,6 @@ use JSON;
 use Try::Tiny qw/ try catch /;
 use MRO::Compat;
 use Moose::Util::TypeConstraints;
-use Module::Load;
 
 our $Log_parse_errors = 1;
 
